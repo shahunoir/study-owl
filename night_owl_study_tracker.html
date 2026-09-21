@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Night Owl Study Tracker 🌙</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    <!-- FontAwesome & Chart.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        night: {
+                            950: '#070a12',
+                            900: '#0b0f19',
+                            850: '#111827',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        moon: {
+                            gold: '#fbbf24',
+                            amber: '#f59e0b',
+                            glow: 'rgba(251, 191, 36, 0.15)',
+                        },
+                        indigo: {
+                            950: '#0f172a',
+                            900: '#1e1b4b',
+                            800: '#312e81',
+                            600: '#4f46e5',
+                            500: '#6366f1',
+                            400: '#818cf8',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #070a12;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(251, 191, 36, 0.05) 0%, transparent 35%);
+            background-attachment: fixed;
+        }
+
+        .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-serif-title { font-family: 'Playfair Display', serif; }
+
+        /* Glassmorphism Styles */
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-card-hover {
+            transition: all 0.25s ease-in-out;
+        }
+        .glass-card-hover:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 15px 35px -10px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(11, 15, 25, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.6);
+        }
+
+        /* Subtle Starry Canvas Overlay */
+        #stars-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        /* Pulse & Glow Effects */
+        .glow-gold {
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.25);
+        }
+        .glow-indigo {
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Custom Modal Animations */
+        .modal-active {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: scale(1) !important;
+        }
+
+        .active-nav-item {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.05) 100%);
+            border-left: 3px solid #6366f1;
+            color: #ffffff !important;
+        }
+
+        /* Timer Circular Ring */
+        .timer-circle {
+            transition: stroke-dashoffset 0.5s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row overflow-x-hidden select-none">
+    <canvas id="stars-canvas"></canvas>
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 glass-card border-r border-white/10 z-20 h-screen sticky top-0 p-5 justify-between">
+        <div>
+            <!-- Logo Header -->
+            <div class="flex items-center space-x-3 mb-8 px-2">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center text-moon-gold shadow-lg shadow-indigo-950/50">
+                    <i class="fa-solid font-bold fa-moon text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-heading font-extrabold text-lg text-white tracking-wide">Night Owl</h1>
+                    <p class="text-xs text-indigo-300/70 font-medium">Study Dashboard</p>
+                </div>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="space-y-1.5" id="desktop-nav">
+                <button data-section="dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold active-nav-item">
+                    <i class="fa-solid fa-house w-5 text-center text-indigo-400"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button data-section="study" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i class="fa-solid fa-stopwatch w-5 text-center text-moon-gold"></i>
+                    <span>Study Desk</span>
+                </button>
+                <button data-section="tasks" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i class="fa-solid fa-list-check w-5 text-center text-emerald-400"></i>
+                    <span>Tasks & To-Do</span>
+                </button>
+                <button data-section="subjects" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i class="fa-solid fa-book-bookmark w-5 text-center text-purple-400"></i>
+                    <span>Subjects</span>
+                </button>
+                <button data-section="history" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i class="fa-solid fa-clock-rotate-left w-5 text-center text-sky-400"></i>
+                    <span>Study History</span>
+                </button>
+                <button data-section="analytics" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i class="fa-solid fa-chart-pie w-5 text-center text-rose-400"></i>
+                    <span>Analytics</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- User Profile Quick Bar & Auth Button -->
+        <div class="pt-4 border-t border-white/10">
+            <div id="user-profile-widget" class="flex items-center justify-between p-2 rounded-xl bg-night-900/60 border border-white/5">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <img id="user-avatar" src="https://placehold.co/100x100/1e1b4b/fbbf24?text=Owl" class="w-9 h-9 rounded-full border border-indigo-500/30 object-cover" alt="Avatar">
+                    <div class="truncate">
+                        <p id="user-name" class="text-xs font-bold text-white truncate">Guest Owl</p>
+                        <p id="user-status" class="text-[10px] text-slate-400 truncate">Local Mode</p>
+                    </div>
+                </div>
+                <button id="auth-modal-trigger" class="p-2 text-indigo-400 hover:text-white transition-colors" title="Account / Login">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                </button>
+            </div>
+            <button id="settings-modal-trigger" class="mt-2 w-full py-2 text-xs text-slate-400 hover:text-white flex items-center justify-center space-x-2 transition-colors">
+                <i class="fa-solid fa-gear"></i>
+                <span>Sound & Preferences</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MOBILE TOP BAR & BOTTOM NAV -->
+    <header class="md:hidden glass-card sticky top-0 z-30 px-4 py-3 flex items-center justify-between border-b border-white/10">
+        <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-moon text-moon-gold text-lg"></i>
+            <span class="font-heading font-bold text-white text-base">Night Owl</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="mobile-settings-btn" class="p-2 text-slate-300 hover:text-white"><i class="fa-solid fa-gear"></i></button>
+            <button id="mobile-auth-btn" class="p-2 text-indigo-400 hover:text-white"><i class="fa-solid fa-user"></i></button>
+        </div>
+    </header>
+
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 glass-card z-30 border-t border-white/10 flex justify-around py-2 px-1 text-xs" id="mobile-nav">
+        <button data-section="dashboard" class="nav-btn flex flex-col items-center py-1 px-2 text-indigo-400">
+            <i class="fa-solid fa-house text-base"></i>
+            <span class="text-[10px] mt-0.5">Home</span>
+        </button>
+        <button data-section="study" class="nav-btn flex flex-col items-center py-1 px-2 text-slate-400">
+            <i class="fa-solid fa-stopwatch text-base"></i>
+            <span class="text-[10px] mt-0.5">Desk</span>
+        </button>
+        <button data-section="tasks" class="nav-btn flex flex-col items-center py-1 px-2 text-slate-400">
+            <i class="fa-solid fa-list-check text-base"></i>
+            <span class="text-[10px] mt-0.5">Tasks</span>
+        </button>
+        <button data-section="history" class="nav-btn flex flex-col items-center py-1 px-2 text-slate-400">
+            <i class="fa-solid fa-clock-rotate-left text-base"></i>
+            <span class="text-[10px] mt-0.5">History</span>
+        </button>
+        <button data-section="analytics" class="nav-btn flex flex-col items-center py-1 px-2 text-slate-400">
+            <i class="fa-solid fa-chart-pie text-base"></i>
+            <span class="text-[10px] mt-0.5">Stats</span>
+        </button>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 z-10 p-4 md:p-8 max-w-7xl mx-auto w-full pb-20 md:pb-8 overflow-y-auto">
+
+        <!-- HEADER BANNER / CLOCK BAR -->
+        <div class="glass-card rounded-2xl p-6 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-indigo-500/20 bg-gradient-to-r from-night-900/90 via-indigo-950/40 to-night-900/90">
+            <div>
+                <div class="flex items-center space-x-2 text-moon-gold mb-1 text-sm font-semibold tracking-wide uppercase">
+                    <i class="fa-regular fa-star"></i>
+                    <span>Midnight Focus Zone</span>
+                </div>
+                <h2 id="greeting-title" class="text-2xl md:text-3xl font-heading font-extrabold text-white">Good evening, Night Owl 🌙</h2>
+                <p id="current-date-display" class="text-xs md:text-sm text-slate-400 mt-1">Tuesday, September 22, 2026</p>
+            </div>
+            
+            <div class="flex items-center space-x-4 self-end md:self-auto bg-night-950/70 px-5 py-3 rounded-2xl border border-white/10 shadow-inner">
+                <i class="fa-regular fa-clock text-indigo-400 text-xl md:text-2xl"></i>
+                <div>
+                    <span id="live-clock" class="text-2xl md:text-3xl font-mono font-bold tracking-wider text-white">00:00:00 AM</span>
+                    <button id="toggle-clock-format" class="text-[10px] text-slate-400 hover:text-indigo-300 block uppercase tracking-wider font-semibold">Switch 12h/24h</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 1: DASHBOARD PAGE -->
+        <div id="section-dashboard" class="page-section space-y-8">
+            
+            <!-- Quick Actions Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <button onclick="switchSection('study'); setDeskMode('stopwatch')" class="glass-card glass-card-hover p-4 rounded-2xl flex items-center space-x-3 text-left border-l-4 border-l-indigo-500">
+                    <div class="p-3 bg-indigo-500/20 text-indigo-400 rounded-xl"><i class="fa-solid fa-stopwatch text-xl"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-400">Quick Start</p>
+                        <p class="font-heading font-bold text-sm text-white">Stopwatch</p>
+                    </div>
+                </button>
+                <button onclick="switchSection('study'); setDeskMode('timer')" class="glass-card glass-card-hover p-4 rounded-2xl flex items-center space-x-3 text-left border-l-4 border-l-moon-gold">
+                    <div class="p-3 bg-amber-500/20 text-moon-gold rounded-xl"><i class="fa-solid fa-hourglass-start text-xl"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-400">Pomodoro</p>
+                        <p class="font-heading font-bold text-sm text-white">Timer</p>
+                    </div>
+                </button>
+                <button onclick="openAddTaskModal()" class="glass-card glass-card-hover p-4 rounded-2xl flex items-center space-x-3 text-left border-l-4 border-l-emerald-500">
+                    <div class="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl"><i class="fa-solid fa-plus text-xl"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-400">Organize</p>
+                        <p class="font-heading font-bold text-sm text-white">Add Task</p>
+                    </div>
+                </button>
+                <button onclick="switchSection('analytics')" class="glass-card glass-card-hover p-4 rounded-2xl flex items-center space-x-3 text-left border-l-4 border-l-purple-500">
+                    <div class="p-3 bg-purple-500/20 text-purple-400 rounded-xl"><i class="fa-solid fa-chart-line text-xl"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-400">Insights</p>
+                        <p class="font-heading font-bold text-sm text-white">View Reports</p>
+                    </div>
+                </button>
+            </div>
+
+            <!-- TODAY SUMMARY STATS -->
+            <div>
+                <h3 class="text-lg font-heading font-bold text-white mb-4 flex items-center space-x-2">
+                    <i class="fa-solid fa-calendar-day text-indigo-400"></i>
+                    <span>Today's Progress</span>
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="glass-card p-4 rounded-2xl border-t-2 border-t-indigo-500">
+                        <p class="text-xs text-slate-400 font-medium">Study Time</p>
+                        <p id="stat-today-time" class="text-xl md:text-2xl font-bold font-heading text-white mt-1">0h 0m</p>
+                        <span class="text-[10px] text-slate-500">Logged today</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border-t-2 border-t-moon-gold">
+                        <p class="text-xs text-slate-400 font-medium">Sessions</p>
+                        <p id="stat-today-sessions" class="text-xl md:text-2xl font-bold font-heading text-white mt-1">0</p>
+                        <span class="text-[10px] text-slate-500">Completed</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border-t-2 border-t-emerald-500">
+                        <p class="text-xs text-slate-400 font-medium">Tasks Done</p>
+                        <p id="stat-today-tasks" class="text-xl md:text-2xl font-bold font-heading text-white mt-1">0 / 0</p>
+                        <span class="text-[10px] text-slate-500">Daily checklist</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border-t-2 border-t-sky-500">
+                        <p class="text-xs text-slate-400 font-medium">Top Subject</p>
+                        <p id="stat-today-subject" class="text-sm md:text-base font-bold font-heading text-white mt-1 truncate">None</p>
+                        <span class="text-[10px] text-slate-500">Most active</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border-t-2 border-t-orange-500">
+                        <p class="text-xs text-slate-400 font-medium">Study Streak</p>
+                        <p id="stat-today-streak" class="text-xl md:text-2xl font-bold font-heading text-moon-gold mt-1">0 Days 🔥</p>
+                        <span class="text-[10px] text-slate-500">Consecutive days</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border-t-2 border-t-purple-500">
+                        <p class="text-xs text-slate-400 font-medium">Daily Goal</p>
+                        <div id="stat-goal-progress-bar-container" class="mt-2">
+                            <p id="stat-goal-text" class="text-xs text-slate-300 font-bold">0%</p>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                                <div id="stat-goal-progress-bar" class="bg-indigo-500 h-full w-0 transition-all"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TWO COLUMN DASHBOARD: TASKS PREVIEW & RECENT SESSIONS -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Today's Tasks Quick List -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-heading font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-list-check text-emerald-400"></i>
+                            <span>Today's Action Items</span>
+                        </h4>
+                        <button onclick="switchSection('tasks')" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">View All →</button>
+                    </div>
+                    <div id="dashboard-task-list" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                        <!-- Tasks dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Recent Sessions Card -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-heading font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-history text-sky-400"></i>
+                            <span>Recent Study Log</span>
+                        </h4>
+                        <button onclick="switchSection('history')" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">Full Log →</button>
+                    </div>
+                    <div id="dashboard-recent-sessions" class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                        <!-- Sessions dynamically populated -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: STUDY DESK (STOPWATCH & COUNTDOWN TIMER) -->
+        <div id="section-study" class="page-section hidden space-y-8">
+            <!-- Mode Switcher Header -->
+            <div class="glass-card p-2 rounded-2xl flex max-w-md mx-auto justify-between border border-white/10">
+                <button id="desk-tab-stopwatch" onclick="setDeskMode('stopwatch')" class="w-1/2 py-2.5 rounded-xl font-heading font-bold text-sm transition-all bg-indigo-600 text-white shadow-lg">
+                    <i class="fa-solid fa-stopwatch mr-2"></i>Stopwatch
+                </button>
+                <button id="desk-tab-timer" onclick="setDeskMode('timer')" class="w-1/2 py-2.5 rounded-xl font-heading font-bold text-sm transition-all text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-hourglass-start mr-2"></i>Countdown Timer
+                </button>
+            </div>
+
+            <!-- Subject & Notes Pre-session Config Card -->
+            <div class="glass-card p-6 rounded-2xl max-w-3xl mx-auto space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Target Subject *</label>
+                        <select id="study-subject-select" class="w-full bg-night-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Session Goal / Note</label>
+                        <input id="study-session-note" type="text" placeholder="e.g. Solving Chapter 4 exercises" class="w-full bg-night-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- STOPWATCH PANEL -->
+            <div id="panel-stopwatch" class="glass-card p-8 rounded-3xl max-w-3xl mx-auto text-center relative overflow-hidden border border-indigo-500/20">
+                <div class="text-xs uppercase font-bold tracking-widest text-indigo-400 mb-2">Continuous Focus Track</div>
+                <div id="stopwatch-display" class="text-6xl md:text-8xl font-mono font-extrabold text-white tracking-wider my-6 drop-shadow-md">
+                    00:00:00
+                </div>
+
+                <div class="flex items-center justify-center space-x-4 mt-8">
+                    <button id="btn-sw-start" onclick="startStopwatch()" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-heading font-bold text-base rounded-2xl shadow-lg shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95">
+                        <i class="fa-solid fa-play mr-2"></i>Start Session
+                    </button>
+                    <button id="btn-sw-pause" onclick="pauseStopwatch()" class="hidden px-8 py-4 bg-amber-600 hover:bg-amber-500 text-white font-heading font-bold text-base rounded-2xl shadow-lg transition-all hover:scale-105">
+                        <i class="fa-solid fa-pause mr-2"></i>Pause
+                    </button>
+                    <button id="btn-sw-resume" onclick="resumeStopwatch()" class="hidden px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-heading font-bold text-base rounded-2xl shadow-lg transition-all hover:scale-105">
+                        <i class="fa-solid fa-play mr-2"></i>Resume
+                    </button>
+                    <button id="btn-sw-stop" onclick="stopAndSaveStopwatch()" class="hidden px-6 py-4 bg-rose-600 hover:bg-rose-500 text-white font-heading font-bold text-base rounded-2xl shadow-lg transition-all hover:scale-105">
+                        <i class="fa-solid fa-square mr-2"></i>Stop & Save
+                    </button>
+                    <button id="btn-sw-reset" onclick="resetStopwatch()" class="hidden px-4 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-heading font-bold text-base rounded-2xl transition-all">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- COUNTDOWN TIMER PANEL -->
+            <div id="panel-timer" class="hidden glass-card p-8 rounded-3xl max-w-3xl mx-auto text-center border border-amber-500/20">
+                <!-- Preset Buttons -->
+                <div class="flex flex-wrap justify-center gap-2 mb-6">
+                    <button onclick="setTimerPreset(25)" class="px-4 py-2 rounded-xl text-xs font-bold bg-night-950/80 hover:bg-indigo-600/30 border border-white/10 text-slate-300 hover:text-white transition-all">25 MIN</button>
+                    <button onclick="setTimerPreset(30)" class="px-4 py-2 rounded-xl text-xs font-bold bg-night-950/80 hover:bg-indigo-600/30 border border-white/10 text-slate-300 hover:text-white transition-all">30 MIN</button>
+                    <button onclick="setTimerPreset(45)" class="px-4 py-2 rounded-xl text-xs font-bold bg-night-950/80 hover:bg-indigo-600/30 border border-white/10 text-slate-300 hover:text-white transition-all">45 MIN</button>
+                    <button onclick="setTimerPreset(60)" class="px-4 py-2 rounded-xl text-xs font-bold bg-night-950/80 hover:bg-indigo-600/30 border border-white/10 text-slate-300 hover:text-white transition-all">60 MIN</button>
+                    <button onclick="setTimerPreset(90)" class="px-4 py-2 rounded-xl text-xs font-bold bg-night-950/80 hover:bg-indigo-600/30 border border-white/10 text-slate-300 hover:text-white transition-all">90 MIN</button>
+                    <div class="flex items-center space-x-1 bg-night-950/80 border border-white/10 rounded-xl px-2">
+                        <input id="timer-custom-input" type="number" min="1" max="300" placeholder="Custom" class="w-16 bg-transparent text-xs text-center text-white py-1.5 focus:outline-none">
+                        <span class="text-[10px] text-slate-400 pr-1">m</span>
+                        <button onclick="applyCustomTimer()" class="text-xs text-indigo-400 font-bold px-1 hover:text-white">Set</button>
+                    </div>
+                </div>
+
+                <!-- Circular Timer Display -->
+                <div class="relative w-64 h-64 mx-auto flex items-center justify-center my-4">
+                    <svg class="w-full h-full" viewBox="0 0 100 100">
+                        <circle class="text-slate-800" stroke-width="6" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50"/>
+                        <circle id="timer-progress-ring" class="text-moon-gold timer-circle" stroke-width="6" stroke-dasharray="263.89" stroke-dashoffset="0" stroke-linecap="round" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50"/>
+                    </svg>
+                    <div class="absolute flex flex-col items-center">
+                        <span id="timer-display" class="text-5xl font-mono font-extrabold text-white tracking-wider">25:00</span>
+                        <span id="timer-mode-label" class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Pomodoro Focus</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center space-x-4 mt-6">
+                    <button id="btn-tm-start" onclick="startTimer()" class="px-8 py-4 bg-moon-gold hover:bg-amber-500 text-night-950 font-heading font-extrabold text-base rounded-2xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95">
+                        <i class="fa-solid fa-play mr-2"></i>Start Countdown
+                    </button>
+                    <button id="btn-tm-pause" onclick="pauseTimer()" class="hidden px-8 py-4 bg-amber-600 hover:bg-amber-500 text-white font-heading font-bold text-base rounded-2xl shadow-lg transition-all hover:scale-105">
+                        <i class="fa-solid fa-pause mr-2"></i>Pause
+                    </button>
+                    <button id="btn-tm-resume" onclick="resumeTimer()" class="hidden px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-heading font-bold text-base rounded-2xl shadow-lg transition-all hover:scale-105">
+                        <i class="fa-solid fa-play mr-2"></i>Resume
+                    </button>
+                    <button id="btn-tm-stop" onclick="stopTimer()" class="hidden px-6 py-4 bg-rose-600 hover:bg-rose-500 text-white font-heading font-bold text-base rounded-2xl shadow-lg transition-all hover:scale-105">
+                        <i class="fa-solid fa-square mr-2"></i>Stop
+                    </button>
+                    <button id="btn-tm-reset" onclick="resetTimer()" class="px-4 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-heading font-bold text-base rounded-2xl transition-all">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: TASKS & TO-DO MANAGER -->
+        <div id="section-tasks" class="page-section hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-2xl font-heading font-bold text-white">Study Tasks & To-Do List</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Plan your daily assignments and track completion</p>
+                </div>
+                <button onclick="openAddTaskModal()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-heading font-bold text-sm shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>New Task</span>
+                </button>
+            </div>
+
+            <!-- Task Filter Bar -->
+            <div class="glass-card p-3 rounded-2xl flex flex-wrap gap-2 text-xs font-semibold">
+                <button onclick="setTaskFilter('all')" class="task-filter-btn active-filter px-3 py-2 rounded-xl bg-indigo-600 text-white" data-filter="all">All</button>
+                <button onclick="setTaskFilter('today')" class="task-filter-btn px-3 py-2 rounded-xl bg-night-950/60 text-slate-400 hover:text-white" data-filter="today">Due Today</button>
+                <button onclick="setTaskFilter('tomorrow')" class="task-filter-btn px-3 py-2 rounded-xl bg-night-950/60 text-slate-400 hover:text-white" data-filter="tomorrow">Tomorrow</button>
+                <button onclick="setTaskFilter('pending')" class="task-filter-btn px-3 py-2 rounded-xl bg-night-950/60 text-slate-400 hover:text-white" data-filter="pending">Pending</button>
+                <button onclick="setTaskFilter('completed')" class="task-filter-btn px-3 py-2 rounded-xl bg-night-950/60 text-slate-400 hover:text-white" data-filter="completed">Completed</button>
+            </div>
+
+            <!-- Task List Container -->
+            <div id="full-task-list" class="space-y-3">
+                <!-- Tasks dynamic rendering -->
+            </div>
+        </div>
+
+        <!-- SECTION 4: SUBJECTS MANAGEMENT -->
+        <div id="section-subjects" class="page-section hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-heading font-bold text-white">Manage Subjects</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Customize your academic subjects and accent colors</p>
+                </div>
+                <button onclick="openAddSubjectModal()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-heading font-bold text-sm shadow-lg transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add Subject</span>
+                </button>
+            </div>
+
+            <div id="subjects-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Subjects dynamic cards -->
+            </div>
+        </div>
+
+        <!-- SECTION 5: STUDY HISTORY -->
+        <div id="section-history" class="page-section hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-2xl font-heading font-bold text-white">Study Log & History</h3>
+                    <p class="text-xs text-slate-400">Review all logged study sessions across all devices</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="exportDataCSV()" class="px-4 py-2 bg-night-900 border border-white/10 rounded-xl text-xs font-semibold hover:bg-white/5 text-slate-300">
+                        <i class="fa-solid fa-file-csv mr-1 text-emerald-400"></i> Export CSV
+                    </button>
+                    <button onclick="exportDataJSON()" class="px-4 py-2 bg-night-900 border border-white/10 rounded-xl text-xs font-semibold hover:bg-white/5 text-slate-300">
+                        <i class="fa-solid fa-file-code mr-1 text-sky-400"></i> Export JSON
+                    </button>
+                </div>
+            </div>
+
+            <!-- History Search & Filter -->
+            <div class="glass-card p-4 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <input id="history-search-input" type="text" placeholder="Search notes or subjects..." oninput="renderHistoryTable()" class="bg-night-950 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none">
+                <select id="history-subject-filter" onchange="renderHistoryTable()" class="bg-night-950 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none">
+                    <option value="all">All Subjects</option>
+                </select>
+                <select id="history-time-filter" onchange="renderHistoryTable()" class="bg-night-950 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+            </div>
+
+            <!-- History Data Table -->
+            <div class="glass-card rounded-2xl overflow-hidden border border-white/10">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-night-950/80 text-slate-400 uppercase font-semibold border-b border-white/10">
+                            <tr>
+                                <th class="p-4">Date & Time</th>
+                                <th class="p-4">Subject</th>
+                                <th class="p-4">Mode</th>
+                                <th class="p-4">Duration</th>
+                                <th class="p-4">Note</th>
+                                <th class="p-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-white/5 text-slate-300">
+                            <!-- Dynamic history rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 6: ANALYTICS & REPORTS -->
+        <div id="section-analytics" class="page-section hidden space-y-8">
+            <div>
+                <h3 class="text-2xl font-heading font-bold text-white">Analytics & Performance Reports</h3>
+                <p class="text-xs text-slate-400">Deep insights into your productivity patterns and time allocation</p>
+            </div>
+
+            <!-- Weekly Comparison Header Card -->
+            <div class="glass-card p-6 rounded-2xl border border-indigo-500/20 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <span class="text-xs text-slate-400 font-semibold uppercase">This Week</span>
+                    <p id="chart-this-week-total" class="text-2xl font-bold font-heading text-white mt-1">0h 0m</p>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-semibold uppercase">Last Week</span>
+                    <p id="chart-last-week-total" class="text-2xl font-bold font-heading text-slate-400 mt-1">0h 0m</p>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-semibold uppercase">Weekly Pace Comparison</span>
+                    <p id="chart-week-comparison-diff" class="text-lg font-bold font-heading text-emerald-400 mt-1">+0% (+0m)</p>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 7-Day Weekly Chart -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h4 class="font-heading font-bold text-white mb-4">7-Day Study Trend (Hours)</h4>
+                    <div class="relative h-64">
+                        <canvas id="chart-weekly"></canvas>
+                    </div>
+                </div>
+
+                <!-- Subject Distribution Donut -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h4 class="font-heading font-bold text-white mb-4">Subject Allocation</h4>
+                    <div class="relative h-64 flex items-center justify-center">
+                        <canvas id="chart-subject-donut"></canvas>
+                    </div>
+                </div>
+
+                <!-- Time of Day Breakdown -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h4 class="font-heading font-bold text-white mb-2">Time-of-Day Activity Breakdown</h4>
+                    <p id="most-active-period-text" class="text-xs text-indigo-300 mb-4">Most Active: Night Focus</p>
+                    <div class="relative h-64">
+                        <canvas id="chart-tod"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly Calendar Heatmap Summary -->
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-heading font-bold text-white mb-1">Monthly Productivity Summary</h4>
+                        <p class="text-xs text-slate-400 mb-4">Overview of current month activity</p>
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <div class="bg-night-950/80 p-4 rounded-xl border border-white/5">
+                                <span class="text-xs text-slate-400">Total Month Time</span>
+                                <p id="monthly-total-time" class="text-xl font-bold text-moon-gold mt-1">0h 0m</p>
+                            </div>
+                            <div class="bg-night-950/80 p-4 rounded-xl border border-white/5">
+                                <span class="text-xs text-slate-400">Active Study Days</span>
+                                <p id="monthly-active-days" class="text-xl font-bold text-indigo-400 mt-1">0 Days</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+                        <span>Night Owl Algorithm V2.0</span>
+                        <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-check-circle mr-1"></i> Data Synchronized</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL: ADD TASK -->
+    <div id="modal-task" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-card p-6 rounded-3xl w-full max-w-md border border-white/10 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 class="font-heading font-bold text-lg text-white">Add Study Task</h3>
+                <button onclick="closeAddTaskModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Task Description *</label>
+                    <input id="task-input-title" type="text" placeholder="e.g., Revise Biology Chapter 3" class="w-full bg-night-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Subject</label>
+                        <select id="task-input-subject" class="w-full bg-night-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
+                            <!-- Dynamic -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Priority</label>
+                        <select id="task-input-priority" class="w-full bg-night-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
+                            <option value="medium">Medium</option>
+                            <option value="high">High 🔥</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Due Date</label>
+                    <input id="task-input-date" type="date" class="w-full bg-night-950 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 pt-3">
+                <button onclick="closeAddTaskModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
+                <button onclick="saveNewTask()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD SUBJECT -->
+    <div id="modal-subject" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-card p-6 rounded-3xl w-full max-w-md border border-white/10 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 class="font-heading font-bold text-lg text-white">Add Custom Subject</h3>
+                <button onclick="closeAddSubjectModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Subject Name *</label>
+                    <input id="subject-input-name" type="text" placeholder="e.g. World History" class="w-full bg-night-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Icon / Emoji</label>
+                        <input id="subject-input-icon" type="text" placeholder="📚" value="📚" class="w-full bg-night-950 border border-white/10 rounded-xl px-4 py-2 text-sm text-center text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Accent Color</label>
+                        <input id="subject-input-color" type="color" value="#6366f1" class="w-full h-10 bg-night-950 border border-white/10 rounded-xl p-1 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 pt-3">
+                <button onclick="closeAddSubjectModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
+                <button onclick="saveNewSubject()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg">Create Subject</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SETTINGS & AUDIO SYSTEM -->
+    <div id="modal-settings" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-card p-6 rounded-3xl w-full max-w-md border border-white/10 space-y-5">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 class="font-heading font-bold text-lg text-white">Settings & Timer Audio</h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Audio Controls -->
+            <div class="space-y-4 bg-night-950/70 p-4 rounded-2xl border border-white/5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-white block">Timer Chime Sound</span>
+                        <span class="text-[10px] text-slate-400">Play moonlight synth chime at 00:00</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="setting-sound-toggle" type="checkbox" class="sr-only peer" checked onchange="toggleSoundPreference(this.checked)">
+                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                        <span>Volume</span>
+                        <span id="volume-val-display">80%</span>
+                    </div>
+                    <input id="setting-volume-slider" type="range" min="0" max="100" value="80" oninput="updateVolumePreference(this.value)" class="w-full accent-indigo-500 cursor-pointer">
+                </div>
+
+                <button onclick="playTimerCompletionSound()" class="w-full py-2.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 rounded-xl text-xs font-bold border border-indigo-500/30 transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <span>Test Chime Sound</span>
+                </button>
+            </div>
+
+            <!-- Daily Study Goal Setting -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Daily Study Target (Hours)</label>
+                <input id="setting-daily-goal" type="number" min="1" max="24" value="4" class="w-full bg-night-950 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none">
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="saveSettings(); closeSettingsModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AUTHENTICATION (FIREBASE GOOGLE / EMAIL) -->
+    <div id="modal-auth" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-card p-6 rounded-3xl w-full max-w-md border border-indigo-500/30 space-y-5 text-center">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <h3 class="font-heading font-bold text-lg text-white">Night Owl Account</h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <p class="text-xs text-slate-300">Sign in to synchronize your study timer, subjects, goals, and history across phone, tablet, and desktop.</p>
+
+            <!-- Google Sign-in Button -->
+            <button id="btn-google-login" onclick="loginWithGoogle()" class="w-full py-3 bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs rounded-xl flex items-center justify-center space-x-3 shadow-md transition-all">
+                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3h3.88c2.27-2.09 3.665-5.17 3.665-9.12z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3c-1.08.72-2.45 1.16-4.05 1.16-3.1 0-5.74-2.09-6.68-4.91H1.28v3.09C3.25 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.32 14.34c-.24-.72-.38-1.49-.38-2.34s.14-1.62.38-2.34V6.57H1.28C.46 8.2 0 10.04 0 12s.46 3.8 1.28 5.43l4.04-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.28 6.57l4.04 3.09c.94-2.82 3.58-4.91 6.68-4.91z"/></svg>
+                <span>Continue with Google / Gmail</span>
+            </button>
+
+            <div class="relative my-2">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                <div class="relative flex justify-center text-[10px] uppercase"><span class="bg-night-900 px-2 text-slate-500">Or Email Sign In</span></div>
+            </div>
+
+            <div class="space-y-3 text-left">
+                <input id="auth-email" type="email" placeholder="Email Address" class="w-full bg-night-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none">
+                <input id="auth-password" type="password" placeholder="Password" class="w-full bg-night-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none">
+            </div>
+
+            <div class="flex space-x-2 pt-2">
+                <button onclick="loginEmail()" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs">Sign In</button>
+                <button onclick="signupEmail()" class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs">Sign Up</button>
+            </div>
+
+            <button id="btn-logout" onclick="logoutUser()" class="hidden w-full py-2.5 bg-rose-900/40 hover:bg-rose-900/70 border border-rose-500/30 text-rose-300 rounded-xl text-xs font-bold mt-3">Log Out Account</button>
+        </div>
+    </div>
+
+    <!-- MODAL: TIMER COMPLETION CELEBRATION -->
+    <div id="modal-completion" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-card p-8 rounded-3xl w-full max-w-sm text-center border border-moon-gold/40 glow-gold space-y-4">
+            <div class="w-16 h-16 rounded-full bg-moon-gold/20 text-moon-gold text-3xl flex items-center justify-center mx-auto animate-bounce">
+                🌙
+            </div>
+            <h3 class="font-heading font-extrabold text-2xl text-white">Session Complete!</h3>
+            <p class="text-xs text-slate-300">Great job! Your study session timer has finished. Take a short rest or save your log.</p>
+            <div class="p-3 bg-night-950/80 rounded-xl border border-white/10 text-xs text-indigo-300 font-mono">
+                Duration: <span id="completion-duration-text" class="text-white font-bold">25 Minutes</span>
+            </div>
+            <button onclick="confirmSaveTimerSession()" class="w-full py-3 bg-moon-gold hover:bg-amber-500 text-night-950 font-heading font-extrabold text-sm rounded-xl shadow-lg transition-all">
+                Save & Close
+            </button>
+        </div>
+    </div>
+
+    <!-- FIREBASE & CORE JAVASCRIPT LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State & Firebase Refs
+        let app, auth, db;
+        let currentUser = null;
+        let appId = typeof __app_id !== 'undefined' ? __app_id : 'night-owl-study-tracker';
+
+        // Firebase Initializer
+        async function initFirebase() {
+            try {
+                const firebaseConfig = typeof __firebase_config !== 'undefined' 
+                    ? JSON.parse(__firebase_config) 
+                    : { apiKey: "demo", authDomain: "demo.firebaseapp.com", projectId: "demo" };
+                
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Auth state observer
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        updateUserUI(user);
+                        setupFirestoreSync();
+                    } else {
+                        // Anonymous fallback login to ensure offline/guest functionality
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    }
+                });
+            } catch (err) {
+                console.warn("Firebase Auth fallback mode activated:", err);
+            }
+        }
+
+        // Firebase Sync Handlers
+        function setupFirestoreSync() {
+            if (!currentUser) return;
+
+            // Sync User Subjects
+            const subjectsCol = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'subjects');
+            onSnapshot(subjectsCol, (snapshot) => {
+                if (!snapshot.empty) {
+                    window.appState.subjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                } else {
+                    seedDefaultSubjects();
+                }
+                window.renderSubjectsUI();
+            }, (err) => console.log("Subjects sync notice:", err));
+
+            // Sync User Tasks
+            const tasksCol = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks');
+            onSnapshot(tasksCol, (snapshot) => {
+                window.appState.tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                window.renderTasksUI();
+                window.updateDashboardStats();
+            }, (err) => console.log("Tasks sync notice:", err));
+
+            // Sync Study Sessions
+            const sessionsCol = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'sessions');
+            onSnapshot(sessionsCol, (snapshot) => {
+                window.appState.sessions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                window.renderHistoryTable();
+                window.updateDashboardStats();
+                window.renderAnalyticsCharts();
+            }, (err) => console.log("Sessions sync notice:", err));
+        }
+
+        async function seedDefaultSubjects() {
+            if (!currentUser) return;
+            const defaults = [
+                { name: 'Physics', icon: '⚡', color: '#6366f1' },
+                { name: 'Chemistry', icon: '🧪', color: '#10b981' },
+                { name: 'Mathematics', icon: '📐', color: '#f59e0b' },
+                { name: 'Biology', icon: '🧬', color: '#ec4899' },
+                { name: 'English', icon: '📖', color: '#3b82f6' },
+                { name: 'ICT', icon: '💻', color: '#8b5cf6' },
+                { name: 'Other', icon: '🔖', color: '#64748b' }
+            ];
+            for (const sub of defaults) {
+                const docRef = doc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'subjects'));
+                await setDoc(docRef, sub);
+            }
+        }
+
+        function updateUserUI(user) {
+            const nameEl = document.getElementById('user-name');
+            const statusEl = document.getElementById('user-status');
+            const logoutBtn = document.getElementById('btn-logout');
+            
+            if (user.isAnonymous) {
+                nameEl.textContent = "Guest Owl";
+                statusEl.textContent = "Local Session";
+                logoutBtn.classList.add('hidden');
+            } else {
+                nameEl.textContent = user.displayName || user.email.split('@')[0];
+                statusEl.textContent = "Cloud Synced ✨";
+                logoutBtn.classList.remove('hidden');
+            }
+        }
+
+        // Firebase Google Auth
+        window.loginWithGoogle = async function() {
+            try {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+                closeAuthModal();
+            } catch (e) {
+                alert("Google Login error: " + e.message);
+            }
+        };
+
+        window.loginEmail = async function() {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                closeAuthModal();
+            } catch (e) {
+                alert("Login Error: " + e.message);
+            }
+        };
+
+        window.signupEmail = async function() {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+                closeAuthModal();
+            } catch (e) {
+                alert("Signup Error: " + e.message);
+            }
+        };
+
+        window.logoutUser = async function() {
+            await signOut(auth);
+            location.reload();
+        };
+
+        // Database write operations wrapper
+        window.dbSaveTask = async function(taskObj) {
+            if (currentUser && !currentUser.isAnonymous) {
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks'), taskObj);
+            } else {
+                taskObj.id = 'task_' + Date.now();
+                window.appState.tasks.push(taskObj);
+                window.saveToLocalStorage();
+                window.renderTasksUI();
+                window.updateDashboardStats();
+            }
+        };
+
+        window.dbToggleTask = async function(taskId, isDone) {
+            if (currentUser && !currentUser.isAnonymous) {
+                await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks', taskId), { completed: isDone });
+            } else {
+                const t = window.appState.tasks.find(x => x.id === taskId);
+                if (t) t.completed = isDone;
+                window.saveToLocalStorage();
+                window.renderTasksUI();
+                window.updateDashboardStats();
+            }
+        };
+
+        window.dbDeleteTask = async function(taskId) {
+            if (currentUser && !currentUser.isAnonymous) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks', taskId));
+            } else {
+                window.appState.tasks = window.appState.tasks.filter(x => x.id !== taskId);
+                window.saveToLocalStorage();
+                window.renderTasksUI();
+                window.updateDashboardStats();
+            }
+        };
+
+        window.dbSaveSubject = async function(subObj) {
+            if (currentUser && !currentUser.isAnonymous) {
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'subjects'), subObj);
+            } else {
+                subObj.id = 'sub_' + Date.now();
+                window.appState.subjects.push(subObj);
+                window.saveToLocalStorage();
+                window.renderSubjectsUI();
+            }
+        };
+
+        window.dbSaveSession = async function(sessObj) {
+            if (currentUser && !currentUser.isAnonymous) {
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'sessions'), sessObj);
+            } else {
+                sessObj.id = 'sess_' + Date.now();
+                window.appState.sessions.push(sessObj);
+                window.saveToLocalStorage();
+                window.renderHistoryTable();
+                window.updateDashboardStats();
+                window.renderAnalyticsCharts();
+            }
+        };
+
+        window.dbDeleteSession = async function(sessId) {
+            if (currentUser && !currentUser.isAnonymous) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'sessions', sessId));
+            } else {
+                window.appState.sessions = window.appState.sessions.filter(x => x.id !== sessId);
+                window.saveToLocalStorage();
+                window.renderHistoryTable();
+                window.updateDashboardStats();
+                window.renderAnalyticsCharts();
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', initFirebase);
+    </script>
+
+    <script>
+        // APPLICATION CENTRAL STATE
+        window.appState = {
+            clock24h: false,
+            soundEnabled: true,
+            volume: 0.8,
+            dailyGoalHours: 4,
+            subjects: [
+                { id: '1', name: 'Physics', icon: '⚡', color: '#6366f1' },
+                { id: '2', name: 'Chemistry', icon: '🧪', color: '#10b981' },
+                { id: '3', name: 'Mathematics', icon: '📐', color: '#f59e0b' },
+                { id: '4', name: 'Biology', icon: '🧬', color: '#ec4899' },
+                { id: '5', name: 'English', icon: '📖', color: '#3b82f6' },
+                { id: '6', name: 'ICT', icon: '💻', color: '#8b5cf6' },
+                { id: '7', name: 'Other', icon: '🔖', color: '#64748b' }
+            ],
+            tasks: [],
+            sessions: [],
+            activeTaskFilter: 'all'
+        };
+
+        // TIMER & STOPWATCH ENGINE VARIABLES
+        let stopwatchInterval = null;
+        let stopwatchStartTimestamp = 0;
+        let stopwatchElapsedBeforePause = 0;
+        let stopwatchState = 'stopped'; // 'stopped', 'running', 'paused'
+
+        let timerInterval = null;
+        let timerDurationSeconds = 25 * 60;
+        let timerRemainingSeconds = 25 * 60;
+        let timerState = 'stopped'; // 'stopped', 'running', 'paused'
+
+        let weeklyChartInstance = null;
+        let donutChartInstance = null;
+        let todChartInstance = null;
+
+        // INITIALIZATION
+        window.onload = function() {
+            initStarCanvas();
+            loadLocalStorageFallback();
+            initClock();
+            renderSubjectsUI();
+            renderTasksUI();
+            renderHistoryTable();
+            updateDashboardStats();
+            initAudioContext();
+            setupNavigationListeners();
+        };
+
+        function saveToLocalStorage() {
+            localStorage.setItem('nightowl_subjects', JSON.stringify(window.appState.subjects));
+            localStorage.setItem('nightowl_tasks', JSON.stringify(window.appState.tasks));
+            localStorage.setItem('nightowl_sessions', JSON.stringify(window.appState.sessions));
+            localStorage.setItem('nightowl_settings', JSON.stringify({
+                soundEnabled: window.appState.soundEnabled,
+                volume: window.appState.volume,
+                dailyGoalHours: window.appState.dailyGoalHours
+            }));
+        }
+
+        function loadLocalStorageFallback() {
+            const sub = localStorage.getItem('nightowl_subjects');
+            if (sub) window.appState.subjects = JSON.parse(sub);
+            
+            const tsk = localStorage.getItem('nightowl_tasks');
+            if (tsk) window.appState.tasks = JSON.parse(tsk);
+
+            const ses = localStorage.getItem('nightowl_sessions');
+            if (ses) window.appState.sessions = JSON.parse(ses);
+
+            const set = localStorage.getItem('nightowl_settings');
+            if (set) {
+                const parsed = JSON.parse(set);
+                window.appState.soundEnabled = parsed.soundEnabled ?? true;
+                window.appState.volume = parsed.volume ?? 0.8;
+                window.appState.dailyGoalHours = parsed.dailyGoalHours ?? 4;
+            }
+        }
+
+        // NAVIGATION SWITCHER
+        function setupNavigationListeners() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const sec = btn.getAttribute('data-section');
+                    if (sec) switchSection(sec);
+                });
+            });
+        }
+
+        window.switchSection = function(sectionId) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden'));
+            const target = document.getElementById('section-' + sectionId);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.getAttribute('data-section') === sectionId) {
+                    btn.classList.add('active-nav-item', 'text-white');
+                    btn.classList.remove('text-slate-400');
+                } else {
+                    btn.classList.remove('active-nav-item', 'text-white');
+                    btn.classList.add('text-slate-400');
+                }
+            });
+
+            if (sectionId === 'analytics') {
+                renderAnalyticsCharts();
+            }
+        };
+
+        // CLOCK ENGINE
+        function initClock() {
+            function updateClock() {
+                const now = new Date();
+                const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('current-date-display').textContent = now.toLocaleDateString('en-US', optionsDate);
+
+                let hours = now.getHours();
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                
+                if (window.appState.clock24h) {
+                    document.getElementById('live-clock').textContent = `${String(hours).padStart(2, '0')}:${minutes}:${seconds}`;
+                } else {
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12 || 12;
+                    document.getElementById('live-clock').textContent = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+                }
+
+                // Dynamic Greeting
+                const hourNum = now.getHours();
+                let greet = "Good evening";
+                if (hourNum >= 0 && hourNum < 5) greet = "Late night focus";
+                else if (hourNum >= 5 && hourNum < 12) greet = "Good morning";
+                else if (hourNum >= 12 && hourNum < 18) greet = "Good afternoon";
+
+                document.getElementById('greeting-title').textContent = `${greet}, Night Owl 🌙`;
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            document.getElementById('toggle-clock-format').addEventListener('click', () => {
+                window.appState.clock24h = !window.appState.clock24h;
+            });
+        }
+
+        // WEB AUDIO SYNTH CHIME SYSTEM
+        let audioCtx = null;
+        function initAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+        }
+
+        window.playTimerCompletionSound = function() {
+            if (!window.appState.soundEnabled) return;
+            initAudioContext();
+            if (!audioCtx) return;
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+            const masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(window.appState.volume, now);
+            masterGain.connect(audioCtx.destination);
+
+            // Play a pleasant 3-note moonlight chime sequence (E5 -> G#5 -> B5)
+            const notes = [659.25, 830.61, 987.77];
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const noteGain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+
+                noteGain.gain.setValueAtTime(0.3, now + idx * 0.15);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.8);
+
+                osc.connect(noteGain);
+                noteGain.connect(masterGain);
+
+                osc.start(now + idx * 0.15);
+                osc.stop(now + idx * 0.15 + 0.8);
+            });
+        };
+
+        // STOPWATCH ENGINE (TIMESTAMP ACCURATE)
+        window.setDeskMode = function(mode) {
+            if (mode === 'stopwatch') {
+                document.getElementById('panel-stopwatch').classList.remove('hidden');
+                document.getElementById('panel-timer').classList.add('hidden');
+                document.getElementById('desk-tab-stopwatch').classList.add('bg-indigo-600', 'text-white');
+                document.getElementById('desk-tab-stopwatch').classList.remove('text-slate-400');
+                document.getElementById('desk-tab-timer').classList.remove('bg-indigo-600', 'text-white');
+                document.getElementById('desk-tab-timer').classList.add('text-slate-400');
+            } else {
+                document.getElementById('panel-stopwatch').classList.add('hidden');
+                document.getElementById('panel-timer').classList.remove('hidden');
+                document.getElementById('desk-tab-timer').classList.add('bg-indigo-600', 'text-white');
+                document.getElementById('desk-tab-timer').classList.remove('text-slate-400');
+                document.getElementById('desk-tab-stopwatch').classList.remove('bg-indigo-600', 'text-white');
+                document.getElementById('desk-tab-stopwatch').classList.add('text-slate-400');
+            }
+        };
+
+        window.startStopwatch = function() {
+            initAudioContext();
+            stopwatchState = 'running';
+            stopwatchStartTimestamp = Date.now();
+            stopwatchInterval = setInterval(updateStopwatchUI, 100);
+
+            document.getElementById('btn-sw-start').classList.add('hidden');
+            document.getElementById('btn-sw-pause').classList.remove('hidden');
+            document.getElementById('btn-sw-stop').classList.remove('hidden');
+            document.getElementById('btn-sw-reset').classList.remove('hidden');
+        };
+
+        function updateStopwatchUI() {
+            if (stopwatchState !== 'running') return;
+            const currentElapsed = Math.floor((Date.now() - stopwatchStartTimestamp) / 1000) + stopwatchElapsedBeforePause;
+            
+            const hrs = String(Math.floor(currentElapsed / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((currentElapsed % 3600) / 60)).padStart(2, '0');
+            const secs = String(currentElapsed % 60).padStart(2, '0');
+
+            document.getElementById('stopwatch-display').textContent = `${hrs}:${mins}:${secs}`;
+        }
+
+        window.pauseStopwatch = function() {
+            stopwatchState = 'paused';
+            clearInterval(stopwatchInterval);
+            stopwatchElapsedBeforePause += Math.floor((Date.now() - stopwatchStartTimestamp) / 1000);
+            
+            document.getElementById('btn-sw-pause').classList.add('hidden');
+            document.getElementById('btn-sw-resume').classList.remove('hidden');
+        };
+
+        window.resumeStopwatch = function() {
+            stopwatchState = 'running';
+            stopwatchStartTimestamp = Date.now();
+            stopwatchInterval = setInterval(updateStopwatchUI, 100);
+
+            document.getElementById('btn-sw-resume').classList.add('hidden');
+            document.getElementById('btn-sw-pause').classList.remove('hidden');
+        };
+
+        window.resetStopwatch = function() {
+            clearInterval(stopwatchInterval);
+            stopwatchState = 'stopped';
+            stopwatchElapsedBeforePause = 0;
+            document.getElementById('stopwatch-display').textContent = '00:00:00';
+
+            document.getElementById('btn-sw-start').classList.remove('hidden');
+            document.getElementById('btn-sw-pause').classList.add('hidden');
+            document.getElementById('btn-sw-resume').classList.add('hidden');
+            document.getElementById('btn-sw-stop').classList.add('hidden');
+            document.getElementById('btn-sw-reset').classList.add('hidden');
+        };
+
+        window.stopAndSaveStopwatch = async function() {
+            let totalSeconds = stopwatchElapsedBeforePause;
+            if (stopwatchState === 'running') {
+                totalSeconds += Math.floor((Date.now() - stopwatchStartTimestamp) / 1000);
+            }
+            resetStopwatch();
+
+            if (totalSeconds < 10) {
+                alert("Session too short to save (must be at least 10 seconds).");
+                return;
+            }
+
+            const subSelect = document.getElementById('study-subject-select');
+            const subName = subSelect.options[subSelect.selectedIndex]?.text || 'General Study';
+            const note = document.getElementById('study-session-note').value.trim();
+
+            const sessionObj = {
+                subject: subName,
+                durationSeconds: totalSeconds,
+                mode: 'Stopwatch',
+                timestamp: Date.now(),
+                dateStr: new Date().toISOString().split('T')[0],
+                note: note
+            };
+
+            await window.dbSaveSession(sessionObj);
+            document.getElementById('study-session-note').value = '';
+            alert(`🎉 Saved ${Math.round(totalSeconds/60)} minutes study session in ${subName}!`);
+        };
+
+        // COUNTDOWN TIMER ENGINE
+        window.setTimerPreset = function(mins) {
+            if (timerState !== 'stopped') resetTimer();
+            timerDurationSeconds = mins * 60;
+            timerRemainingSeconds = timerDurationSeconds;
+            updateTimerDisplay();
+        };
+
+        window.applyCustomTimer = function() {
+            const val = parseInt(document.getElementById('timer-custom-input').value);
+            if (val && val > 0) {
+                setTimerPreset(val);
+            }
+        };
+
+        function updateTimerDisplay() {
+            const mins = String(Math.floor(timerRemainingSeconds / 60)).padStart(2, '0');
+            const secs = String(timerRemainingSeconds % 60).padStart(2, '0');
+            document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+
+            // Circular progress ring
+            const circle = document.getElementById('timer-progress-ring');
+            const radius = circle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (timerRemainingSeconds / timerDurationSeconds) * circumference;
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        window.startTimer = function() {
+            initAudioContext();
+            timerState = 'running';
+            const targetTime = Date.now() + timerRemainingSeconds * 1000;
+
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                timerRemainingSeconds = Math.max(0, Math.round((targetTime - now) / 1000));
+                updateTimerDisplay();
+
+                if (timerRemainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerState = 'stopped';
+                    onTimerFinished();
+                }
+            }, 500);
+
+            document.getElementById('btn-tm-start').classList.add('hidden');
+            document.getElementById('btn-tm-pause').classList.remove('hidden');
+            document.getElementById('btn-tm-stop').classList.remove('hidden');
+        };
+
+        window.pauseTimer = function() {
+            timerState = 'paused';
+            clearInterval(timerInterval);
+            document.getElementById('btn-tm-pause').classList.add('hidden');
+            document.getElementById('btn-tm-resume').classList.remove('hidden');
+        };
+
+        window.resumeTimer = function() {
+            startTimer();
+            document.getElementById('btn-tm-resume').classList.add('hidden');
+            document.getElementById('btn-tm-pause').classList.remove('hidden');
+        };
+
+        window.resetTimer = function() {
+            clearInterval(timerInterval);
+            timerState = 'stopped';
+            timerRemainingSeconds = timerDurationSeconds;
+            updateTimerDisplay();
+
+            document.getElementById('btn-tm-start').classList.remove('hidden');
+            document.getElementById('btn-tm-pause').classList.add('hidden');
+            document.getElementById('btn-tm-resume').classList.add('hidden');
+            document.getElementById('btn-tm-stop').classList.add('hidden');
+        };
+
+        window.stopTimer = function() {
+            resetTimer();
+        };
+
+        function onTimerFinished() {
+            window.playTimerCompletionSound();
+
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("Study Session Finished 🌙", {
+                    body: "Great job completing your study block!"
+                });
+            }
+
+            document.getElementById('completion-duration-text').textContent = `${Math.round(timerDurationSeconds / 60)} Minutes`;
+            document.getElementById('modal-completion').classList.add('modal-active');
+        }
+
+        window.confirmSaveTimerSession = async function() {
+            document.getElementById('modal-completion').classList.remove('modal-active');
+
+            const subSelect = document.getElementById('study-subject-select');
+            const subName = subSelect.options[subSelect.selectedIndex]?.text || 'General Study';
+            const note = document.getElementById('study-session-note').value.trim();
+
+            const sessionObj = {
+                subject: subName,
+                durationSeconds: timerDurationSeconds,
+                mode: 'Countdown Timer',
+                timestamp: Date.now(),
+                dateStr: new Date().toISOString().split('T')[0],
+                note: note
+            };
+
+            await window.dbSaveSession(sessionObj);
+            resetTimer();
+        };
+
+        // SUBJECT MANAGEMENT UI
+        window.renderSubjectsUI = function() {
+            const grid = document.getElementById('subjects-grid');
+            const select = document.getElementById('study-subject-select');
+            const taskSubSelect = document.getElementById('task-input-subject');
+            const historySubFilter = document.getElementById('history-subject-filter');
+
+            grid.innerHTML = '';
+            select.innerHTML = '';
+            taskSubSelect.innerHTML = '';
+            historySubFilter.innerHTML = '<option value="all">All Subjects</option>';
+
+            window.appState.subjects.forEach(sub => {
+                // Card in Subjects tab
+                const card = document.createElement('div');
+                card.className = "glass-card p-5 rounded-2xl flex items-center justify-between border-l-4";
+                card.style.borderLeftColor = sub.color;
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">${sub.icon}</span>
+                        <div>
+                            <p class="font-heading font-bold text-white text-sm">${sub.name}</p>
+                            <span class="text-[10px] text-slate-400">Custom Subject</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                // Option in Study Desk Select
+                const opt1 = document.createElement('option');
+                opt1.value = sub.name;
+                opt1.textContent = `${sub.icon} ${sub.name}`;
+                select.appendChild(opt1);
+
+                // Option in Task Modal Select
+                const opt2 = document.createElement('option');
+                opt2.value = sub.name;
+                opt2.textContent = `${sub.icon} ${sub.name}`;
+                taskSubSelect.appendChild(opt2);
+
+                // Option in History Filter
+                const opt3 = document.createElement('option');
+                opt3.value = sub.name;
+                opt3.textContent = sub.name;
+                historySubFilter.appendChild(opt3);
+            });
+        };
+
+        window.openAddSubjectModal = () => document.getElementById('modal-subject').classList.add('modal-active');
+        window.closeAddSubjectModal = () => document.getElementById('modal-subject').classList.remove('modal-active');
+
+        window.saveNewSubject = async function() {
+            const name = document.getElementById('subject-input-name').value.trim();
+            const icon = document.getElementById('subject-input-icon').value.trim() || '📚';
+            const color = document.getElementById('subject-input-color').value;
+
+            if (!name) { alert("Please enter subject name"); return; }
+
+            await window.dbSaveSubject({ name, icon, color });
+            closeAddSubjectModal();
+            document.getElementById('subject-input-name').value = '';
+        };
+
+        // TASKS UI
+        window.renderTasksUI = function() {
+            const listContainer = document.getElementById('full-task-list');
+            const dashListContainer = document.getElementById('dashboard-task-list');
+
+            listContainer.innerHTML = '';
+            dashListContainer.innerHTML = '';
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            let filtered = window.appState.tasks;
+            if (window.appState.activeTaskFilter === 'today') {
+                filtered = filtered.filter(t => t.dueDate === todayStr);
+            } else if (window.appState.activeTaskFilter === 'pending') {
+                filtered = filtered.filter(t => !t.completed);
+            } else if (window.appState.activeTaskFilter === 'completed') {
+                filtered = filtered.filter(t => t.completed);
+            }
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-500">No tasks found in this section 🌙</div>`;
+            }
+
+            filtered.forEach(task => {
+                const item = document.createElement('div');
+                item.className = `glass-card p-4 rounded-xl flex items-center justify-between border-l-2 ${task.completed ? 'opacity-50 border-l-slate-600' : 'border-l-indigo-500'}`;
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="window.dbToggleTask('${task.id}', this.checked)" class="w-4 h-4 accent-emerald-500 cursor-pointer">
+                        <div class="truncate">
+                            <p class="text-xs font-semibold text-white ${task.completed ? 'line-through text-slate-400' : ''}">${task.title}</p>
+                            <div class="flex items-center space-x-2 text-[10px] text-slate-400 mt-0.5">
+                                <span class="text-indigo-300 font-medium">${task.subject}</span>
+                                <span>•</span>
+                                <span>${task.dueDate || 'No Date'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="window.dbDeleteTask('${task.id}')" class="text-slate-500 hover:text-rose-400 p-2"><i class="fa-solid fa-trash"></i></button>
+                `;
+                listContainer.appendChild(item);
+            });
+
+            // Populate dashboard mini list (uncompleted today's tasks first)
+            const dashTasks = window.appState.tasks.slice(0, 5);
+            if (dashTasks.length === 0) {
+                dashListContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-500">No active tasks. Enjoy studying!</div>`;
+            } else {
+                dashTasks.forEach(t => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between p-2.5 bg-night-950/60 rounded-xl border border-white/5 text-xs";
+                    row.innerHTML = `
+                        <div class="flex items-center space-x-2 truncate">
+                            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="window.dbToggleTask('${t.id}', this.checked)" class="accent-emerald-500">
+                            <span class="${t.completed ? 'line-through text-slate-500' : 'text-slate-200'} truncate">${t.title}</span>
+                        </div>
+                        <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">${t.subject}</span>
+                    `;
+                    dashListContainer.appendChild(row);
+                });
+            }
+        };
+
+        window.openAddTaskModal = () => document.getElementById('modal-task').classList.add('modal-active');
+        window.closeAddTaskModal = () => document.getElementById('modal-task').classList.remove('modal-active');
+
+        window.saveNewTask = async function() {
+            const title = document.getElementById('task-input-title').value.trim();
+            const subject = document.getElementById('task-input-subject').value;
+            const priority = document.getElementById('task-input-priority').value;
+            const dueDate = document.getElementById('task-input-date').value || new Date().toISOString().split('T')[0];
+
+            if (!title) { alert("Please enter task title"); return; }
+
+            await window.dbSaveTask({
+                title, subject, priority, dueDate, completed: false
+            });
+            closeAddTaskModal();
+            document.getElementById('task-input-title').value = '';
+        };
+
+        window.setTaskFilter = function(filter) {
+            window.appState.activeTaskFilter = filter;
+            document.querySelectorAll('.task-filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.className = "task-filter-btn active-filter px-3 py-2 rounded-xl bg-indigo-600 text-white";
+                } else {
+                    btn.className = "task-filter-btn px-3 py-2 rounded-xl bg-night-950/60 text-slate-400 hover:text-white";
+                }
+            });
+            renderTasksUI();
+        };
+
+        // HISTORY TABLE LOGIC
+        window.renderHistoryTable = function() {
+            const tbody = document.getElementById('history-table-body');
+            const dashSessions = document.getElementById('dashboard-recent-sessions');
+            const search = document.getElementById('history-search-input').value.toLowerCase();
+            const subFilter = document.getElementById('history-subject-filter').value;
+
+            tbody.innerHTML = '';
+            dashSessions.innerHTML = '';
+
+            let filtered = [...window.appState.sessions].sort((a,b) => b.timestamp - a.timestamp);
+
+            if (subFilter !== 'all') {
+                filtered = filtered.filter(s => s.subject === subFilter);
+            }
+            if (search) {
+                filtered = filtered.filter(s => s.subject.toLowerCase().includes(search) || (s.note && s.note.toLowerCase().includes(search)));
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">No study logs available yet. Start your first session! 🌙</td></tr>`;
+                dashSessions.innerHTML = `<div class="p-4 text-center text-xs text-slate-500">No recent study sessions logged.</div>`;
+                return;
+            }
+
+            filtered.forEach(s => {
+                const tr = document.createElement('tr');
+                const dateObj = new Date(s.timestamp);
+                const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const durMin = Math.round(s.durationSeconds / 60);
+
+                tr.innerHTML = `
+                    <td class="p-4">${s.dateStr} <span class="text-slate-500 text-[10px]">${timeStr}</span></td>
+                    <td class="p-4 font-semibold text-indigo-300">${s.subject}</td>
+                    <td class="p-4"><span class="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-md text-[10px]">${s.mode}</span></td>
+                    <td class="p-4 font-bold text-white">${durMin} min</td>
+                    <td class="p-4 text-slate-400 max-w-xs truncate">${s.note || '-'}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="window.dbDeleteSession('${s.id}')" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Populate Recent Sessions on Dashboard
+            filtered.slice(0, 4).forEach(s => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-3 bg-night-950/60 rounded-xl border border-white/5 text-xs";
+                const durMin = Math.round(s.durationSeconds / 60);
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg"><i class="fa-solid fa-book text-sm"></i></div>
+                        <div>
+                            <p class="font-bold text-white">${s.subject}</p>
+                            <p class="text-[10px] text-slate-400">${s.dateStr} • ${s.mode}</p>
+                        </div>
+                    </div>
+                    <span class="font-mono font-bold text-moon-gold text-sm">${durMin}m</span>
+                `;
+                dashSessions.appendChild(item);
+            });
+        };
+
+        // DASHBOARD STATS CALCULATOR
+        window.updateDashboardStats = function() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todaySessions = window.appState.sessions.filter(s => s.dateStr === todayStr);
+
+            // Total study time today
+            const totalSecsToday = todaySessions.reduce((acc, curr) => acc + (curr.durationSeconds || 0), 0);
+            const hrs = Math.floor(totalSecsToday / 3600);
+            const mins = Math.round((totalSecsToday % 3600) / 60);
+            document.getElementById('stat-today-time').textContent = `${hrs}h ${mins}m`;
+
+            // Sessions count
+            document.getElementById('stat-today-sessions').textContent = todaySessions.length;
+
+            // Tasks done
+            const completedTasks = window.appState.tasks.filter(t => t.completed).length;
+            document.getElementById('stat-today-tasks').textContent = `${completedTasks} / ${window.appState.tasks.length}`;
+
+            // Top subject today
+            const subMap = {};
+            todaySessions.forEach(s => {
+                subMap[s.subject] = (subMap[s.subject] || 0) + s.durationSeconds;
+            });
+            let topSub = 'None';
+            let maxSec = 0;
+            for (const [sub, secs] of Object.entries(subMap)) {
+                if (secs > maxSec) {
+                    maxSec = secs;
+                    topSub = sub;
+                }
+            }
+            document.getElementById('stat-today-subject').textContent = topSub;
+
+            // Study streak calculation
+            const uniqueDates = [...new Set(window.appState.sessions.map(s => s.dateStr))].sort().reverse();
+            let streak = 0;
+            let checkDate = new Date();
+            for (let i = 0; i < 30; i++) {
+                const dateStr = checkDate.toISOString().split('T')[0];
+                if (uniqueDates.includes(dateStr)) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else if (i === 0) {
+                    // Check if yesterday had study if today isn't logged yet
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+            document.getElementById('stat-today-streak').textContent = `${streak} Days 🔥`;
+
+            // Daily goal progress
+            const goalSecs = (window.appState.dailyGoalHours || 4) * 3600;
+            const pct = Math.min(100, Math.round((totalSecsToday / goalSecs) * 100));
+            document.getElementById('stat-goal-text').textContent = `${pct}% (${hrs}h / ${window.appState.dailyGoalHours}h)`;
+            document.getElementById('stat-goal-progress-bar').style.width = `${pct}%`;
+        };
+
+        // ANALYTICS & CHARTS
+        window.renderAnalyticsCharts = function() {
+            // 7-Day Weekly Chart
+            const ctxWeekly = document.getElementById('chart-weekly')?.getContext('2d');
+            if (ctxWeekly) {
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const hoursPerDay = [0,0,0,0,0,0,0];
+
+                const now = new Date();
+                window.appState.sessions.forEach(s => {
+                    const d = new Date(s.timestamp);
+                    const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+                    if (diffDays < 7) {
+                        const dayIdx = d.getDay();
+                        hoursPerDay[dayIdx] += (s.durationSeconds / 3600);
+                    }
+                });
+
+                if (weeklyChartInstance) weeklyChartInstance.destroy();
+                weeklyChartInstance = new Chart(ctxWeekly, {
+                    type: 'bar',
+                    data: {
+                        labels: days,
+                        datasets: [{
+                            label: 'Hours Studied',
+                            data: hoursPerDay.map(h => Number(h.toFixed(1))),
+                            backgroundColor: '#6366f1',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                        }
+                    }
+                });
+            }
+
+            // Subject Donut
+            const ctxDonut = document.getElementById('chart-subject-donut')?.getContext('2d');
+            if (ctxDonut) {
+                const subMap = {};
+                window.appState.sessions.forEach(s => {
+                    subMap[s.subject] = (subMap[s.subject] || 0) + Math.round(s.durationSeconds / 60);
+                });
+
+                const labels = Object.keys(subMap);
+                const data = Object.values(subMap);
+
+                if (donutChartInstance) donutChartInstance.destroy();
+                donutChartInstance = new Chart(ctxDonut, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels.length ? labels : ['No Data'],
+                        datasets: [{
+                            data: data.length ? data : [1],
+                            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#3b82f6', '#8b5cf6'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: '#f1f5f9', font: { size: 10 } } } }
+                    }
+                });
+            }
+
+            // Time of Day
+            const ctxTod = document.getElementById('chart-tod')?.getContext('2d');
+            if (ctxTod) {
+                const todBuckets = { 'Morning (5-12)': 0, 'Afternoon (12-17)': 0, 'Evening (17-21)': 0, 'Night (21-5)': 0 };
+                window.appState.sessions.forEach(s => {
+                    const hr = new Date(s.timestamp).getHours();
+                    if (hr >= 5 && hr < 12) todBuckets['Morning (5-12)'] += s.durationSeconds;
+                    else if (hr >= 12 && hr < 17) todBuckets['Afternoon (12-17)'] += s.durationSeconds;
+                    else if (hr >= 17 && hr < 21) todBuckets['Evening (17-21)'] += s.durationSeconds;
+                    else todBuckets['Night (21-5)'] += s.durationSeconds;
+                });
+
+                if (todChartInstance) todChartInstance.destroy();
+                todChartInstance = new Chart(ctxTod, {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(todBuckets),
+                        datasets: [{
+                            label: 'Minutes',
+                            data: Object.values(todBuckets).map(sec => Math.round(sec / 60)),
+                            borderColor: '#fbbf24',
+                            tension: 0.4,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                        }
+                    }
+                });
+            }
+        };
+
+        // SETTINGS & MODALS
+        window.openSettingsModal = () => document.getElementById('modal-settings').classList.add('modal-active');
+        window.closeSettingsModal = () => document.getElementById('modal-settings').classList.remove('modal-active');
+        document.getElementById('settings-modal-trigger').onclick = openSettingsModal;
+        document.getElementById('mobile-settings-btn').onclick = openSettingsModal;
+
+        window.openAuthModal = () => document.getElementById('modal-auth').classList.add('modal-active');
+        window.closeAuthModal = () => document.getElementById('modal-auth').classList.remove('modal-active');
+        document.getElementById('auth-modal-trigger').onclick = openAuthModal;
+        document.getElementById('mobile-auth-btn').onclick = openAuthModal;
+
+        window.toggleSoundPreference = (enabled) => window.appState.soundEnabled = enabled;
+        window.updateVolumePreference = (val) => {
+            window.appState.volume = val / 100;
+            document.getElementById('volume-val-display').textContent = `${val}%`;
+        };
+
+        window.saveSettings = function() {
+            window.appState.dailyGoalHours = parseInt(document.getElementById('setting-daily-goal').value) || 4;
+            saveToLocalStorage();
+            updateDashboardStats();
+        };
+
+        // EXPORT DATA (CSV & JSON)
+        window.exportDataCSV = function() {
+            let csv = "Date,Subject,Mode,DurationMinutes,Note\n";
+            window.appState.sessions.forEach(s => {
+                csv += `"${s.dateStr}","${s.subject}","${s.mode}",${Math.round(s.durationSeconds/60)},"${s.note || ''}"\n`;
+            });
+            downloadFile(csv, "night_owl_study_log.csv", "text/csv");
+        };
+
+        window.exportDataJSON = function() {
+            const data = JSON.stringify(window.appState, null, 2);
+            downloadFile(data, "night_owl_backup.json", "application/json");
+        };
+
+        function downloadFile(content, fileName, contentType) {
+            const a = document.createElement("a");
+            const file = new Blob([content], { type: contentType });
+            a.href = URL.createObjectURL(file);
+            a.download = fileName;
+            a.click();
+        }
+
+        // STARRY BACKGROUND CANVAS DECORATION
+        function initStarCanvas() {
+            const canvas = document.getElementById('stars-canvas');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                stars = Array.from({ length: 70 }, () => ({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.2,
+                    alpha: Math.random(),
+                    speed: 0.005 + Math.random() * 0.01
+                }));
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                stars.forEach(star => {
+                    star.alpha += star.speed;
+                    if (star.alpha > 1 || star.alpha < 0) star.speed = -star.speed;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(star.alpha)})`;
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            draw();
+        }
+    </script>
+</body>
+</html>
